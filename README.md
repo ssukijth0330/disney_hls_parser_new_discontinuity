@@ -111,25 +111,29 @@ discontinuity_segments=[
 Run the code:
 -------------
 1) Run the test
+   - From the terminal of VScode, cd to directory of the project, and then type
     "cargo test"
     Note: There is no error and warning. 
 Expectaton:
 All test cases must PASS
 
 2) Build
+   - From the terminal of VScode, cd to directory of the project, and then type
    "cargo build"
 
 3) Run: 
 Note: This is not an application project, there is nothing to showcase oter than "Hello World!"....No surprises. 
+   - From the terminal of VScode, cd to directory of the project, and then type
    "cargo run"
 
 4) Clean:
+   - From the terminal of VScode, cd to directory of the project, and then type
    "cargo clean"
 
 
 For example:
 -----------
-From the 'Terminal' of 'Vitual Studio Code' type :
+   - From the terminal of VScode, cd to directory of the project, and then type
     cargo clean; cargo build; cargo test
 
 Screenshot
