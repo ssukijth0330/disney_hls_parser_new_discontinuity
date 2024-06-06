@@ -175,6 +175,6 @@ Limitations (know issues)
 -------------------------
 1) The project is NOT designed to validate the HLS manifest tags. It only focus of some M3U tags, as menstioned above.
 2) If the code attempts to parse digits from an input string containing alphabetic characters, it will panic with helpful error messages.
-.(More can be added here)
+3) (More can be added here)
 .
 .
