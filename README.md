@@ -178,3 +178,10 @@ Limitations (know issues)
 3) (More can be added here)
 .
 .
+
+Development Tools
+-----------------
+- VScode and cargo.
+- RUST and RUST extension on VScode.
+- git tools. 
+- Internet access to github.(optional)
