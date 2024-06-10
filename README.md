@@ -171,6 +171,23 @@ test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fini
 
 PS C:\Users\ssuki\disney_hls_parser>
 
+
+Note:
+If the target duration or segment duration in the HLS contect is invalid the function will convert
+to the close value.
+Such as
+
+1) 
+#EXT-X-TARGETDURATION:abc20def
+The taget duration will be saved as 20 in the MediaPlaylist. Similar to the segment duration. 
+
+2) 
+#EXTINF:abc12.166def,
+#EXT-X-BYTERANGE:1430680@4048392
+segment_1440468394459_1440468394459_1.ts
+The segment duration will be saved as 12.166 in the MediaPlaylist.
+
+
 Limitations (know issues)
 -------------------------
 1) The project is NOT designed to validate the HLS manifest tags. It only focus of some M3U tags, as menstioned above.

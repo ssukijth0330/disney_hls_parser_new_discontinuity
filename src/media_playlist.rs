@@ -1,8 +1,9 @@
 // //! Utilites for parsing media playlists (i.e. not master playlists).
+#![allow(unused)]
 
 use core::time::Duration;
-
 use anyhow::{anyhow, Result};
+use std::num::ParseIntError;
 
 /// Storage for HLS Media Playlist data. Can be constructed from `ext-m3u` data using
 /// [`parse_ext_m3u`][MediaPlaylist::parse_ext_m3u].
@@ -80,8 +81,9 @@ impl MediaPlaylist {
         //
         let mut segments = Vec::new();
         // Create a new variable to store the target duration
-        // set to enum "None"
-        let mut target_duration = None;
+        // // set to default value 0
+        let mut target_duration = Duration::new(0, 0);
+
         // Create a new variable to store the version
         let mut version = None;
 
@@ -117,6 +119,22 @@ impl MediaPlaylist {
         // start segment index to clone the segments from prious discontinuity tag
         let mut start_discontinuity_segment = 0;
 
+        fn u64_from_string (s: &str) -> Result<u64, String> {
+            let digits: String = s.chars().filter(|c| c.is_ascii_digit()).collect();
+            match digits.parse::<u64>() {
+                Ok(value) => Ok(value),
+                Err(_) => Err(String::from("Error: the string contains non-numeric characters")),
+            }
+        }        
+
+        fn f32_from_string (s: &str) -> Result<f32, String> {
+            let digits: String = s.chars().filter(|c| c.is_ascii_digit() || *c == '.').collect();
+            match digits.parse::<f32>() {
+                Ok(value) => Ok(value),
+                Err(_) => Err(String::from("Error: the string contains non-numeric characters")),
+            }
+        }        
+
         //get into the LOOP to parse manifest content line by line
         for line in lines {
             if get_url { //found the duration, then looking for url for the segment
@@ -132,22 +150,18 @@ impl MediaPlaylist {
             }
 
             match line.to_string() {
-                s if s.contains("EXT-X-TARGETDURATION") => { // maxinum duration
-                    //#EXT-X-TARGETDURATION:20
-                    let parse_target_duration = line
-                        .split(":") // split at the ':'
-                        .last()// get the last part of the line after the colon
-                        .ok_or_else(|| anyhow!("EXT-X-TARGETDURATION: expecting digit before convert to u64"))?// if the value is not found, return the error, ? for escalation error, do NOT need unwrap() 
-                        .parse::<u64>()// convert to u64
-                        .map_err(|e| anyhow!("EXT-X-TARGETDURATION: expecting digit to convert to u64:{}",e))?; // If the value is not digit, return the error
-                    // put the duration_str to target_duration structure {secs, nanos}
-                    // by using library Duration and from_secs() function
-                    // Note: the from_secs will set the nanos to 0.
-                    // secs: u64,
-                    // nanos: Nanoseconds
-                    // Duration:  [secs, nanos]
-                    // Some() is used to wrap the value into the Option enum, match the target_duration defined in the struct
-                    target_duration = Some(Duration::from_secs(parse_target_duration));
+                s if s.contains("EXT-X-TARGETDURATION") => {
+                    let target_duration_str = s
+                    .split(':')
+                    .last()
+                    .ok_or_else(|| anyhow!("EXT-X-TARGETDURATION: expecting digit")).unwrap();
+
+                    //Save the target_duration
+                    match u64_from_string(target_duration_str) {
+                         Ok(num) => target_duration = Duration::from_secs(num),
+                         Err(err) => println!{"EXT-X-TARGETDURATION: expecting digit in HLS manifest after 'EXT-X-TARGETDURATION:' tag"},
+                    }
+
                 },
                 s if s.contains("#EXT-X-VERSION:") => { // HLS manifest version
                     //#EXT-X-VERSION:4
@@ -163,15 +177,15 @@ impl MediaPlaylist {
                     // // #EXTINF:12.166,
                     let duration_f32 = line["#EXTINF:".len()..]// string slide to get the value after the "12.166,"
                         .splitn(2,',')// 12.166, => ["12.166", ""]
-                        .next()// get the first part, "12.166"
-                        .ok_or_else(|| anyhow!("EXTINF: expecting digit and comma"))?
-                        .parse::<f32>()// convert the string to f32, if error, return the error message
-                        .map_err(|e| anyhow!("#EXTINF: expecting digit:{}",e))?; // Check if the value is digit, if not return "Expecting digit:..."
+                        .next().unwrap();// get the first part, "12.166"
+
                     // Put the duration_f32 in the Duration struct{[secs, nanos]}
                     // by using the from_secs_f32() function because we need to preserve the nanos
-                    // use the unwrap() here because off adding the .map_erro() above
-                    // and the duration_seg expect the f32 value, not the OPTION.
-                    duration_seg = Duration::from_secs_f32(duration_f32);
+                    match f32_from_string(duration_f32) {
+                            Ok(num) => duration_seg = Duration::from_secs_f32(num),
+                            Err(err) => println!{"EXTINF: expecting digit in HLS manifest after 'EXTINF:' tag"},
+                    }
+   
                     // need to get the url of the segment in the next two lines, so set get_url to true
                     // turn get_url flag ON
                     get_url = true;
@@ -229,14 +243,9 @@ impl MediaPlaylist {
             }
         } //end of loop
 
-        //return the MediaPlaylist
-        // if the target_duration is None, return an error message
-        // ? : if the value is OK, unwraps and returns the value
-        //   : if error return the error message
-        let target_duration = target_duration.ok_or_else(|| anyhow!("Missing #EXT-X-TARGETDURATION"))?;
-
         // if the version is None, return an error message
         let version = version.ok_or_else(|| anyhow!("Missing #EXT-X-VERSION"))?;
+
         // return the MediaPlaylist with the values
         // { ended: bool, segments: Vec<MediaSegment>, target_duration: Duration, version: u64}
         // put in Ok() to return the Result<Self>
