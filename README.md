@@ -58,29 +58,32 @@ Please do not spend more than 4 hours on the project.
 
 Implementation: (Sutti: 05/28/2024)
 --------------
-0) Create the main.sr to verify there is no error when run the "cargo build" and "cargo run"
+Steps:
 
-1) Implement the function pub fn parse_ext_m3u(_file: &str) and return the MediaPlaylist 
-    The idea:
-      - Create variables 
+0) Create a main.sr and implement "Hello World!" 
+    Ensure there is no error when running "cargo build" and "cargo run"
+
+1) Implement the function 'pub fn parse_ext_m3u(_file: &str)' and return the MediaPlaylist 
+    Idea:
+      - Create variables.
       - Assign the pointer to the input URL content, In this example the URL content is HLS manifest of Bigbuck_bunney
-      - Skip the first line and assume it is the #EXTM3U, if not stop with "The wrong HLS manifest format"
-      - set the get_url flag to off
-      - LOOP with "match" commands or if command
-        - if the get_url flag is on --> read next lines to get the URL of segment, and add vec[duration, url] to MediaPlayList.segments 
+      - Skip the first line and assume it is the #EXTM3U, if not, stop with "The wrong HLS manifest format"
+      - Set the get_url flag to off
+      - LOOP with "match" commands or 'if' commands (This code is useing 'match')
+        - if the 'get_url' flag is on, read next lines to get the URL of the segment, and add vec[duration, url] to MediaPlayList.segments 
 
-        - match with "EXT-X-TARGETDURATION": save target_duration 
-        - match with "EXT-X-VERSION": save the version to Playlist.
-        - match with "EXTINF": get the duration of segment, and set the "get_url" flag on
-        - match with "EXT-X-DISCONTINUITY" or "EXT-X-ENDLIST": 
-            - Clone the video segment from MediaPlaylist.segments to the discontinutity segments. The starting poing of "segment cloning" should be from the previous discontinutity tag found until the end of the segment vectors. If this is the firts time that found the discontinuity tag, then start the cloning from the begining until the end. 
-            - and also sum the segments durations.  
-            - Then add all information of discontinuity(discontinuity duration, and segments vector) to the MedeaPlaylist.discontinuity. 
-            - If it is the "EXT-X-ENDLIST" also set the 'ended' to ture.
+        - Match with "EXT-X-TARGETDURATION": Save target_duration 
+        - Match with "EXT-X-VERSION": Save the version to Playlist.
+        - Match with "EXTINF": Get the duration of segment, and set the "get_url" flag on
+        - Match with "EXT-X-DISCONTINUITY" or "EXT-X-ENDLIST": 
+            - Clone the video segment from 'MediaPlaylist.segments' to the discontinutity segments. The starting poing of "segment cloning" should be from the previous discontinutity tag found until the end of the segment vectors. If this is the firts time finding the discontinuity tag, then start the cloning from the begining until the end. 
+            - Sum the segments durations of cloning segments.  
+            - Add all information of discontinuity(discontinuity duration, and segments vector) to the MedeaPlaylist.discontinuity structure. 
+            - If it is the "EXT-X-ENDLIST", also set the 'ended' to ture.
             - Reset the related variables.
 
-      - When completed the LOOP
-      - Put the target_duration and version along with segment Vector of the return MediaPlaylist
+      - When th loop is completed:
+         - Put the target_duration and version along with segment Vector into the return MediaPlaylist
 
 Output of MediaPlaylist after prasing:
 -------------------------------------
