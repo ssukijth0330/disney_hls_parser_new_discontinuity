@@ -221,7 +221,6 @@ impl MediaPlaylist {
                         //  let this_segment_duration = segment.duration.as_millis();
                         // read the segment.duration as the milliseconds because, need to sum in millisecondsl
                         let this_segment_duration = segment.duration.as_millis();
-                        //let this_segment_duration = segment.duration::Duration::as_millis();
 
                         // Then sum
                         // sum_discontinuity_duration += Duration::from_millis(this_segment_duration);
