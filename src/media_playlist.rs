@@ -157,6 +157,11 @@ impl MediaPlaylist {
                     .ok_or_else(|| anyhow!("EXT-X-TARGETDURATION: expecting digit")).unwrap();
 
                     //Save the target_duration
+                    // by using library Duration and from_secs() function
+                    // Note: the from_secs will set the nanos to 0.
+                    // secs: u64,
+                    // nanos: Nanoseconds
+                    // Duration:  [secs, nanos]
                     match u64_from_string(target_duration_str) {
                          Ok(num) => target_duration = Duration::from_secs(num),
                          Err(err) => println!{"EXT-X-TARGETDURATION: expecting digit in HLS manifest after 'EXT-X-TARGETDURATION:' tag"},
