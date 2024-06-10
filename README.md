@@ -87,27 +87,20 @@ Steps:
 
 Output of MediaPlaylist after prasing:
 -------------------------------------
-MediaPlaylist=[ ended=true, [[duration,url],[duration,url],...,[duration,url]], targetduration=20, version=4, discontinuity=[[total duration, [[duration,url],...,[duration,url]],...,[total duration, [[duration, url],..,[duration,url]]]]
-
-
-DISCONTINUITY information in the MediaPlaylist:
-discontinuity=[
-[discontinuity_duration=[secs=25, nanos= 458],
-discontinuity_segments=[
-[[secs=12,nanos=166],[segment_1440468394459_1440468394459_1.ts]],
-[[secs=13,nanos=292],[segment_1440468394459_1440468394459_2.ts]]
-],
-[discontinuity_duration=[secs=33, nanos= 1376],
-discontinuity_segments=[
-[[secs=10,nanos=500],[segment_1440468394459_1440468394459_3.ts]],
-[[secs=11,nanos=417],[segment_1440468394459_1440468394459_4.ts]],
-[[secs=12,nanos=459],[segment_1440468394459_1440468394459_5.ts]]
-],
-[discontinuity_duration=[secs=40, nanos= 1126],
-discontinuity_segments=[
-[[secs=14,nanos=000],[segment_1440468394459_1440468394459_6.ts]],
-[[secs=19,nanos=292],[segment_1440468394459_1440468394459_7.ts]],
-[[secs=7,nanos=834],[segment_1440468394459_1440468394459_8.ts]]
+MediaPlaylist=[ 
+   ended=true, 
+   segments=[
+      [duration,url],[duration,url],...,[duration,url]
+   ], 
+   targetduration=xxx, 
+   version=xxx, 
+   discontinuity=[
+      [
+         discontinuity_duration=xxxx, discontinuity_segments=[[duration,url],...,[duration,url]],
+         ...,
+         discontinuity_duration=xxxx, discontinuity_segments=[[duration, url],..,[duration,url]]
+      ]
+   }
 ]
 
 
