@@ -1,4 +1,4 @@
-# HLS Parsing
+# HLS Parsing with new discontinuity implementation
 
 ## HLS
 
