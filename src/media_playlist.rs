@@ -141,6 +141,8 @@ impl MediaPlaylist {
                 if line.contains(".ts") { //check if the line contains the url
                     //Save the duration and url into the segment vector.
                     segments.push(MediaSegment { duration: duration_seg, url: line.to_string() });
+
+
                     // tunr get_url flag OFF
                     get_url = false;
                     continue;
@@ -218,7 +220,6 @@ impl MediaPlaylist {
                         discontinuity_segments.push(segment.clone());
 
                         // Get the value from segment duration 
-                        //  let this_segment_duration = segment.duration.as_millis();
                         // read the segment.duration as the milliseconds because, need to sum in millisecondsl
                         let this_segment_duration = segment.duration.as_millis();
 
