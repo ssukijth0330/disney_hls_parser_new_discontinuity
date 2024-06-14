@@ -60,21 +60,22 @@ Implementation: (Sutti: 05/28/2024)
 --------------
 Steps:
 
-0) Create a main.sr and implement "Hello World!" 
-    Ensure there is no error when running "cargo build" and "cargo run"
+0) Create a main.rs and implement "Hello World!" 
+    Ensure there are no errors when running "cargo build" and "cargo run"
 
 1) Implement the function 'pub fn parse_ext_m3u(_file: &str)' and return the MediaPlaylist 
     Idea:
       - Create variables.
       - Assign the pointer to the input URL content, In this example the URL content is HLS manifest of Bigbuck_bunney
       - Skip the first line and assume it is the #EXTM3U, if not, stop with "The wrong HLS manifest format"
-      - Set the get_url flag to off
+      - create helper functions
+      - Set initial values of variables.
       - LOOP with "match" commands.
         - if the 'get_url' flag is on, 
             - read next lines to get the URL of the segment, 
             - if found the DISCONTINUITY tag, add a new discontinuity vector,
                - add vec[duration, url] to MediaPlayList.segments
-               - add vec[duration, url] to MediaPlayList.discontinuity and pumb up the discontinuity duration. 
+               - add vec[duration, url] to MediaPlayList.discontinuity and pump up the discontinuity duration. 
                - set the DISCONTINUITY flag OFF
             - set the get_url flag OFF
 
@@ -84,7 +85,7 @@ Steps:
         - Match with "EXT-X-DISCONTINUITY": set the discontinuity flag on
         - Match "EXT-X-ENDLIST": set MediaPlatlist.ended: true
 
-      - When th loop is completed:
+      - When the loop is completed:
          - Put the target_duration and version along with segment Vector into the return MediaPlaylist
 
 Output of MediaPlaylist after prasing:
