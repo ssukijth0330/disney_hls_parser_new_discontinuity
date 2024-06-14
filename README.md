@@ -69,18 +69,20 @@ Steps:
       - Assign the pointer to the input URL content, In this example the URL content is HLS manifest of Bigbuck_bunney
       - Skip the first line and assume it is the #EXTM3U, if not, stop with "The wrong HLS manifest format"
       - Set the get_url flag to off
-      - LOOP with "match" commands or 'if' commands (This code is useing 'match')
-        - if the 'get_url' flag is on, read next lines to get the URL of the segment, and add vec[duration, url] to MediaPlayList.segments 
+      - LOOP with "match" commands.
+        - if the 'get_url' flag is on, 
+            - read next lines to get the URL of the segment, 
+            - if found the DISCONTINUITY tag, add a new discontinuity vector,
+               - add vec[duration, url] to MediaPlayList.segments
+               - add vec[duration, url] to MediaPlayList.discontinuity and pumb up the discontinuity duration. 
+               - set the DISCONTINUITY flag OFF
+            - set the get_url flag OFF
 
         - Match with "EXT-X-TARGETDURATION": Save target_duration 
         - Match with "EXT-X-VERSION": Save the version to Playlist.
         - Match with "EXTINF": Get the duration of segment, and set the "get_url" flag on
-        - Match with "EXT-X-DISCONTINUITY" or "EXT-X-ENDLIST": 
-            - Clone the video segment from 'MediaPlaylist.segments' to the discontinutity segments. The starting poing of "segment cloning" should be from the previous discontinutity tag found until the end of the segment vectors. If this is the firts time finding the discontinuity tag, then start the cloning from the begining until the end. 
-            - Sum the segments durations of cloning segments.  
-            - Add all information of discontinuity(discontinuity duration, and segments vector) to the MedeaPlaylist.discontinuity structure. 
-            - If it is the "EXT-X-ENDLIST", also set the 'ended' to ture.
-            - Reset the related variables.
+        - Match with "EXT-X-DISCONTINUITY": set the discontinuity flag on
+        - Match "EXT-X-ENDLIST": set MediaPlatlist.ended: true
 
       - When th loop is completed:
          - Put the target_duration and version along with segment Vector into the return MediaPlaylist
@@ -172,11 +174,9 @@ test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fini
 PS C:\Users\ssuki\disney_hls_parser>
 
 
-Note:
-If the target duration or segment duration in the HLS contect is invalid the function will convert
-to the close value.
-Such as
-
+NOTE:
+The code is able handle an invalid duration.
+Such as:
 1) 
 #EXT-X-TARGETDURATION:abc20def
 The taget duration will be saved as 20 in the MediaPlaylist. Similar to the segment duration. 

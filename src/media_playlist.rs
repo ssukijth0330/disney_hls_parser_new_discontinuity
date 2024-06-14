@@ -113,6 +113,8 @@ impl MediaPlaylist {
         // Ref: https://doc.rust-lang.org/core/time/struct.Duration.html
         let mut sum_discontinuity_duration = Duration::from_millis(0); // use ::from_millis()
 
+        let mut discontinuity_flag = true;
+
         // Create a new variable to store the flag to get the url of the segment
         let mut get_url = false;
 
@@ -139,15 +141,38 @@ impl MediaPlaylist {
         for line in lines {
             if get_url { //found the duration, then looking for url for the segment
                 if line.contains(".ts") { //check if the line contains the url
-                    //Save the duration and url into the segment vector.
+                    // *** Save the duration and url to MediaPlaylist.segments.
                     segments.push(MediaSegment { duration: duration_seg, url: line.to_string() });
 
+                    // *** Save discontinuity
+                    // MydiaPlaylist = [...
+                    //              [ [Segment_Duration, string], [Segment_Duration, string] ], ...]
+                    //                 |
+                    // discontinuity = |----> [ [discontinuity_duration,[[Segment_Duration, string],...,[Segment_Duration, string]],...,]
+                    if discontinuity.is_empty() || discontinuity_flag { // create a new discontinuity vector and push the segment
+                        let mut discontinuity_segment = DiscontinuitySegment {
+                            discontinuity_segments: vec![MediaSegment { duration: duration_seg, url: line.to_string() }],  // creating a new vector containing a single 'MeidaSegment' struct
+                            discontinuity_duration: duration_seg,
+                        };
+                        discontinuity.push(discontinuity_segment);
+                        discontinuity_flag = false;
+                    } else { 
+                        // if the discontinuity is not empty, then get the last element of the discontinuity
+                        // and push the segment to the last element of the discontinuity, then pump up the duration
+                        let last_discontinuity = discontinuity.last_mut().unwrap();
+                        // sum the discontinuity duration in milliseconds
+                        let sum_discontinuity_duration = last_discontinuity.discontinuity_duration.as_millis() + duration_seg.as_millis() as u128;
+                        // Then save back in the Duration format.
+                        last_discontinuity.discontinuity_duration = Duration::from_millis(sum_discontinuity_duration.try_into().unwrap());
+                        // Then push the segment to the last element of the discontinuity
+                        last_discontinuity.discontinuity_segments.push(MediaSegment { duration: duration_seg, url: line.to_string() });
+                    }
 
-                    // tunr get_url flag OFF
+                    // Set get_url flag OFF
                     get_url = false;
                     continue;
                 } else { // if the line does not contain the url, then get the next line, may need to handle the error here if the HLS content is missing ".ts"
-                    continue;
+                    continue; // skip the line below
                 }
             }
 
@@ -197,50 +222,13 @@ impl MediaPlaylist {
                     // turn get_url flag ON
                     get_url = true;
                },
-               s if s.contains("#EXT-X-DISCONTINUITY") || s.contains("#EXT-X-ENDLIST") => { // FOUND the end of the playlist
-                    // IF found the EXT-X-DISCONTINUITY tag, 
-                    //  - Clone segments in MediaPlayList ---> discontinuity_segments, from the previous tag position until the end
-                    //  - Calculate the sum of the duration of the segments
-                    //  - Save the sum
-                    //  - Reset the Start to the end of the segments for next uses.
-                    //  - Reset the sum for next uses.
-                    //
-                    // MydiaPlaylist = [...
-                    //              [ [Duration, string], [Duration, string] ], ...]
-                    //                 |
-                    // discontinuity = |----> [ [ 25.458, [[Duration, string], [Duration, string] ] ]
-
-                    // Create a new vector to store the segments of the discontinuity
-                    let mut discontinuity_segments = Vec::new();
-
-                    // Loop through the 'segments' of 'MediaPlaylist sctructure' and clone the segments from the start_discontinuity_segment until the end of the segments 
-                    for segment in segments.iter().skip(start_discontinuity_segment) {
-
-                        // Clone the segment ---> push to discontinuity_segments
-                        discontinuity_segments.push(segment.clone());
-
-                        // Get the value from segment duration 
-                        // read the segment.duration as the milliseconds because, need to sum in millisecondsl
-                        let this_segment_duration = segment.duration.as_millis();
-
-                        // Then sum
-                        // sum_discontinuity_duration += Duration::from_millis(this_segment_duration);
-                        // When doing the sum, need to read in milliseconds, so use the as_millis() to get the milliseconds
-                        sum_discontinuity_duration += Duration::from_millis(this_segment_duration.try_into().unwrap());
-                    }
-                    // ["sum_discontinuity_duration", [["discontinuity segments"],...] ---PUSH to---> MediaPlaylist structure
-                    discontinuity.push(DiscontinuitySegment { discontinuity_duration: sum_discontinuity_duration, discontinuity_segments });
-
-                    // keep track of the start index for the next discontinuity 
-                    start_discontinuity_segment = segments.len();
-
-                    // Reset the sum
-                    sum_discontinuity_duration = Duration::from_millis(0);
-
-                    if s.contains("#EXT-X-ENDLIST") {
-                        // set the ended to true
-                        ended = true;
-                    }
+               s if s.contains("#EXT-X-DISCONTINUITY") => { // IF found the EXT-X-DISCONTINUITY tag,
+                    // Set discontinuity flag to true
+                    discontinuity_flag = true;
+                },
+                s if s.contains("#EXT-X-ENDLIST") => { // FOUND the end of the playlist
+                    // set the ended to true
+                    ended = true;
                 },
                _ => { // do nothing
                     continue;
