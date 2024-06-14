@@ -175,7 +175,7 @@ PS C:\Users\ssuki\disney_hls_parser>
 
 
 NOTE:
-The code is able handle an invalid duration.
+The code is able handle an invalid duration or emtry string instred of panic.
 Such as:
 1) 
 #EXT-X-TARGETDURATION:abc20def
@@ -186,6 +186,10 @@ The taget duration will be saved as 20 in the MediaPlaylist. Similar to the segm
 #EXT-X-BYTERANGE:1430680@4048392
 segment_1440468394459_1440468394459_1.ts
 The segment duration will be saved as 12.166 in the MediaPlaylist.
+
+3) 
+#EXTINF:,
+The code will display ERROR message, instead of panic
 
 
 Limitations (know issues)

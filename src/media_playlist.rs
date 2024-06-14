@@ -121,14 +121,16 @@ impl MediaPlaylist {
         // start segment index to clone the segments from prious discontinuity tag
         let mut start_discontinuity_segment = 0;
 
+        // remove alphabet before convert to u64
         fn u64_from_string (s: &str) -> Result<u64, String> {
             let digits: String = s.chars().filter(|c| c.is_ascii_digit()).collect();
             match digits.parse::<u64>() {
                 Ok(value) => Ok(value),
                 Err(_) => Err(String::from("Error: the string contains non-numeric characters")),
             }
-        }        
+        }
 
+        // remove alphabet before convert to f32
         fn f32_from_string (s: &str) -> Result<f32, String> {
             let digits: String = s.chars().filter(|c| c.is_ascii_digit() || *c == '.').collect();
             match digits.parse::<f32>() {
@@ -167,7 +169,6 @@ impl MediaPlaylist {
                         // Then push the segment to the last element of the discontinuity
                         last_discontinuity.discontinuity_segments.push(MediaSegment { duration: duration_seg, url: line.to_string() });
                     }
-
                     // Set get_url flag OFF
                     get_url = false;
                     continue;
@@ -178,12 +179,15 @@ impl MediaPlaylist {
 
             match line.to_string() {
                 s if s.contains("EXT-X-TARGETDURATION") => {
+                    //#EXT-X-TARGETDURATION:20
                     let target_duration_str = s
-                    .split(':')
-                    .last()
+                    .split(':') // [#EXT-X-TARGETDURATION, 20]
+                    .last() // 20
                     .ok_or_else(|| anyhow!("EXT-X-TARGETDURATION: expecting digit")).unwrap();
 
                     //Save the target_duration
+                    // Function u64_from_string will remove alphabet from the string
+                    // before convert to u64
                     // by using library Duration and from_secs() function
                     // Note: the from_secs will set the nanos to 0.
                     // secs: u64,
@@ -213,9 +217,12 @@ impl MediaPlaylist {
 
                     // Put the duration_f32 in the Duration struct{[secs, nanos]}
                     // by using the from_secs_f32() function because we need to preserve the nanos
+                    // Use function f32_from_string to remove alphabet from the string before 
+                    // convert to f32.
+                    // If there is error then display the error message.
                     match f32_from_string(duration_f32) {
                             Ok(num) => duration_seg = Duration::from_secs_f32(num),
-                            Err(err) => println!{"EXTINF: expecting digit in HLS manifest after 'EXTINF:' tag"},
+                            Err(err) => println!{"EXTINF: expecting digit in HLS manifest after 'EXTINF:'"},
                     }
    
                     // need to get the url of the segment in the next two lines, so set get_url to true
